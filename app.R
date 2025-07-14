@@ -572,4 +572,5 @@ format_amino_acids_with_color <- function(amino_acid_string) {
   tagList(formatted_html_elements)
 }
 
+
 shinyApp(ui = ui, server = server)
