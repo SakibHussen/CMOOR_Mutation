@@ -501,6 +501,7 @@ server <- function(input, output, session) {
     }
   })
   
+  
   # Check/Submit logic
   observeEvent(input$submit_check, {
     # Get correct values
@@ -527,6 +528,7 @@ server <- function(input, output, session) {
       if (any(mutated_aa == "STOP" & seq_along(mutated_aa) <= length(original_aa))) return("Nonsense")
       return("Missense")
     }
+    
     correct_type <- classify_mutation(original_aa, mutated_aa)
     student_type <- input$student_type
     type_ok <- (student_type == correct_type)
@@ -554,11 +556,14 @@ server <- function(input, output, session) {
   })
 }
 
+
+
 # --- STOP codon display fix ---
 format_amino_acids_with_color <- function(amino_acid_string) {
   if (is.null(amino_acid_string) || nchar(amino_acid_string) == 0) {
     return(NULL)
   }
+  
   amino_acid_string <- toupper(gsub("[ ]+", " ", trimws(amino_acid_string)))
   amino_acids <- unlist(strsplit(amino_acid_string, " "))
   formatted_html_elements <- lapply(amino_acids, function(aa_code) {
@@ -571,6 +576,5 @@ format_amino_acids_with_color <- function(amino_acid_string) {
   })
   tagList(formatted_html_elements)
 }
-
 
 shinyApp(ui = ui, server = server)
