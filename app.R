@@ -224,13 +224,10 @@ format_sequence <- function(seq_string, chunk_size = 3) {
   if (nchar(seq_string) == 0) {
     return("")
   }
-  # Add spaces between chunks but limit the total length
+  # Add spaces between chunks
   formatted <- paste(substring(seq_string, seq(1, nchar(seq_string), chunk_size), seq(chunk_size, nchar(seq_string), chunk_size)), collapse = " ")
-  # If the formatted string is too long, truncate it
-  if (nchar(formatted) > 100) {
-    formatted <- substr(formatted, 1, 100)
-    formatted <- paste0(formatted, "...")
-  }
+  # Always add '...' at the end to indicate sequence continues
+  formatted <- paste0(formatted, "...")
   return(formatted)
 }
 
@@ -398,21 +395,7 @@ ui <- fluidPage(
   ),
   div(class = "button-section", style = "text-align:center; margin: 20px 0;",
       actionButton("refresh", "Refresh All", class = "btn-refresh")
-  ),
-  div(class = "student-section",
-      div(style = "display: flex; align-items: center; gap: 10px; flex-wrap: wrap;",
-          span("This is a"),
-          selectInput("student_type", NULL, choices = c("Missense", "Nonsense", "Silent", "Frameshift"), width = "140px"),
-          span("mutation, because"),
-          textInput("student_reason", NULL, width = "200px", placeholder = "your explanation"),
-          span(". The change in the final form and function of the polypeptide is expected to be"),
-          selectInput("student_effect", NULL, choices = c("large", "unknown", "none"), width = "90px"),
-          span(".")
-      )
-  ),
-  actionButton("submit_check", "Submit", class = "btn-submit"),
-  uiOutput("error_message"),
-  uiOutput("check_feedback")
+  )
 )
 
 # --- Server Definition ---
@@ -464,6 +447,7 @@ server <- function(input, output, session) {
   # Mutate button logic: update RNA and AA from DNA
   observeEvent(input$mutate_btn, {
     dna <- toupper(gsub(" ", "", input$mutated_dna))
+    dna <- gsub("\\.+$", "", dna)  # Remove trailing dots
     # Truncate DNA to the largest multiple of 3 from the left
     n <- nchar(dna)
     n3 <- n - (n %% 3)
@@ -488,6 +472,7 @@ server <- function(input, output, session) {
     msgs <- c()
     # Mutated DNA validation
     dna <- toupper(gsub(" ", "", input$mutated_dna))
+    dna <- gsub("\\.+$", "", dna)  # Remove trailing dots
     if (nchar(dna) > 0 && !grepl("^[ATCG]+$", dna)) {
       msgs <- c(msgs, "Mutated DNA must contain only A, T, C, G.")
     }
@@ -506,6 +491,7 @@ server <- function(input, output, session) {
   observeEvent(input$submit_check, {
     # Get correct values
     student_dna <- toupper(gsub(" ", "", input$mutated_dna))
+    student_dna <- gsub("\\.+$", "", student_dna)  # Remove trailing dots
     rna <- transcribe_dna(student_dna)
     aa <- translate_rna(rna)
     student_rna <- rna
